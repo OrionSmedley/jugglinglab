@@ -69,6 +69,16 @@ class HeldPropCatchMotionTest {
         assertTrue(middle.x > early.x, "Resident must make room before the catch")
         assertTrue(landed.x >= middle.x)
     }
+    @Test fun residentBallsLeaveTheReleasePointClear() {
+        val preview = SequencePreviewBuilder.build("357", finite = false)
+        val motion = HeldPropLayout.Motion(preview.pattern)
+        val first = preview.pattern.layout.pathLinks.first().first { !it.isInHand && it.startEvent.t >= preview.window.start - 0.000001 }
+        val source = motion.frame(first.startEvent.t + 0.0000001).first {
+            it.juggler == first.startEvent.juggler && it.hand == first.startEvent.hand
+        }
+        assertTrue(source.offsets.isNotEmpty())
+        assertTrue(source.offsets.values.all { it.getDistance() > 0.5f }, "Residents must make room for the departing ball")
+    }
     @Test fun scrubbingProducesTheSamePlacementInEitherDirection() {
         val preview = SequencePreviewBuilder.build("357", finite = false)
         val motion = HeldPropLayout.Motion(preview.pattern)

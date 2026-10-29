@@ -27,7 +27,7 @@ internal object HeldPropLayout {
         private data class Carry(val path: Int, val juggler: Int, val hand: Int, val start: Double, var end: Double, val approachStart: Double?)
         private data class Boundary(
             val time: Double, val before: Map<Int, Offset>, val after: Map<Int, Offset>,
-            val incoming: Set<Int>, val outgoing: Set<Int>, val lead: Double, val settle: Double
+            val incoming: Set<Int>, val outgoing: Set<Int>, val release: Map<Int, Offset>, val lead: Double, val settle: Double
         )
         private class Track(val juggler: Int, val hand: Int, private val carries: List<Carry>) {
             private fun layout(time: Double): Map<Int, Offset> {
@@ -45,7 +45,12 @@ internal object HeldPropLayout {
                 val approach = carries.filter { abs(it.start - t) < 0.000001 }.mapNotNull {
                     it.approachStart?.let { start -> (t - start) * 0.45 }
                 }.minOrNull() ?: 0.14
-                Boundary(t, before, after, after.keys - before.keys, before.keys - after.keys,
+                val outgoing = before.keys - after.keys
+                val residents = before.keys.filter { it !in outgoing }
+                val release = before.keys.associateWith { path ->
+                    if (path in outgoing) Offset.Zero else offset(residents.indexOf(path) + 1, residents.size + 1, 1f, 1f)
+                }
+                Boundary(t, before, after, after.keys - before.keys, outgoing, release,
                     min(approach, min(0.14, if (i > 0) (t - times[i-1]) * 0.4 else 0.14)),
                     min(0.14, if (i < times.lastIndex) (times[i+1] - t) * 0.4 else 0.14))
             }
@@ -63,14 +68,14 @@ internal object HeldPropLayout {
                             // Catch at the real hand: incoming props stay there while residents move aside.
                             // Extra props in a simultaneous multiplex ease into their visible slots in flight.
                             val target = if (path in b.outgoing) Offset.Zero
-                                else if (b.incoming.isNotEmpty()) b.after[path] ?: Offset.Zero else initial
+                                else if (b.incoming.isNotEmpty()) b.after[path] ?: Offset.Zero else b.release[path] ?: initial
                             blend(initial, target, f)
                         }
                         return Placement(juggler, hand, offsets)
                     }
                     if (b.incoming.isEmpty() && time > b.time && time < b.time + b.settle) {
                         val offsets = b.after.keys.associateWith { path ->
-                            blend(b.before[path] ?: Offset.Zero, b.after.getValue(path), (time - b.time) / b.settle)
+                            blend(b.release[path] ?: Offset.Zero, b.after.getValue(path), (time - b.time) / b.settle)
                         }
                         return Placement(juggler, hand, offsets)
                     }
