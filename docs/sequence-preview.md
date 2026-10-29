@@ -11,6 +11,16 @@ Open Pattern Entry. With **Play once (finite sequence)** checked, enter `345`
 and press Run. Play advances through the sequence and stops after the last
 landing. Restart, − Beat, + Beat, and the slider inspect individual beats.
 
+The Playback speed menu beside these controls exposes the existing animation
+Slowdown preference as a multiplier of Juggling Lab’s default speed, from
+0.25× to 2×. Changing speed preserves the current beat and paused/playing state.
+Animation Preferences still allows a custom slowdown factor.
+
+Props held in the same hand are fanned out in screen space so their inventory
+can be counted. The first prop stays anchored to the physical hand; additional
+props form a small outward stack. Only drawing coordinates change; throw
+scheduling, physical trajectories, hand positions, and exported JML do not.
+
 With Play once unchecked, valid patterns animate normally. Enter `32` to
 preview an invalid loop: it stops on beat 4 and reports the affected hand and
 catch capacity. Multiplex destinations are checked against their planned
@@ -66,7 +76,7 @@ Focused tests of the real WebAssembly engine, including native JML layout:
 ```sh
 NODE_OPTIONS="--import=$(pwd)/browser-build/test-node-preload.mjs" \
   ./gradlew -p browser-build :composeApp:wasmJsNodeTest \
-  --tests '*SequencePreviewTest*'
+  --tests '*SequencePreviewTest*' --tests '*HeldPropLayoutTest*'
 ```
 
 The Node preload supplies browser platform metadata and local WASM loading for

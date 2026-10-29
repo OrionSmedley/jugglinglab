@@ -8,6 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import org.jugglinglab.core.PatternAnimationState
+import org.jugglinglab.core.AnimationPrefs
+import org.jugglinglab.util.jlToStringRounded
 import org.jugglinglab.notation.SiteswapPattern
 import kotlin.math.floor
 import kotlin.math.max
@@ -38,6 +40,24 @@ fun PlaybackTimeline(state: PatternAnimationState) {
             }) { Text(if (state.isPaused) "Play" else "Pause") }
             TextButton(onClick = { seek(start + (beat + 1) * step) }) { Text("+ Beat") }
             Text("Beat ${beat + 1} / ${lastBeat + 1}", style = MaterialTheme.typography.labelSmall)
+        }
+        var speedMenuOpen by remember { mutableStateOf(false) }
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Text("Playback speed", style = MaterialTheme.typography.labelSmall)
+            Box {
+                TextButton(onClick = { speedMenuOpen = true }) {
+                    val multiplier = AnimationPrefs.SLOWDOWN_DEF / state.prefs.slowdown
+                    Text("${jlToStringRounded(multiplier, 2)}× ▾")
+                }
+                DropdownMenu(expanded = speedMenuOpen, onDismissRequest = { speedMenuOpen = false }) {
+                    for (multiplier in listOf(0.25, 0.5, 0.75, 1.0, 1.5, 2.0)) {
+                        DropdownMenuItem(text = { Text("${jlToStringRounded(multiplier, 2)}×") }, onClick = {
+                            state.update(prefs = state.prefs.copy(slowdown = AnimationPrefs.SLOWDOWN_DEF / multiplier))
+                            speedMenuOpen = false
+                        })
+                    }
+                }
+            }
         }
         Slider(value = state.time.coerceIn(start, end).toFloat(), onValueChange = { seek(it.toDouble()) },
             valueRange = start.toFloat()..end.toFloat(), modifier = Modifier.fillMaxWidth())
