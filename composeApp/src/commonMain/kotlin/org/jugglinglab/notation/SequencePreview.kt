@@ -54,7 +54,7 @@ object SequencePreviewBuilder {
     fun build(config: String, finite: Boolean): SequencePreview {
         val plan = plan(config, finite)
         val pl = ParameterList(if ('=' in config) config else "pattern=$config")
-        val bps = pl.getParameter("bps")?.toDoubleOrNull()?.takeIf { it > 0 } ?: 2.0
+        val bps = plan.inspection.beatsPerSecond
         require(bps in 0.25..10.0) { "Preview speed must be between 0.25 and 10 beats per second." }
         val balls = mutableListOf<Ball>()
         val arrivals = mutableMapOf<Site, MutableList<Ball>>()
@@ -103,7 +103,7 @@ object SequencePreviewBuilder {
                     add(s.index + lead, s.juggler, s.hand, path, JmlTransition.TRANS_HOLDING)
                 } else {
                     add(s.index + lead, s.juggler, s.hand, path, JmlTransition.TRANS_THROW, s.mod)
-                    add(s.targetIndex + lead - 0.3, s.targetJuggler, s.targetHand, path, JmlTransition.TRANS_CATCH)
+                    add(s.targetIndex + lead - minOf(plan.inspection.dwellBeats, s.throwValue - 0.1), s.targetJuggler, s.targetHand, path, JmlTransition.TRANS_CATCH)
                 }
             }
             val last = ball.segments.last()

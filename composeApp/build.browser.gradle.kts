@@ -39,3 +39,17 @@ tasks.register<AntlrKotlinTask>("generateKotlinGrammarSource") {
  arguments = listOf("-visitor")
  outputDirectory = layout.buildDirectory.dir("generatedAntlr/org/jugglinglab/notation/ssparser/generated").get().asFile
 }
+
+// Same string-packaging step as the normal upstream build. The WASM engine
+// prewarms these XML files so exceptions contain translated messages.
+val copyStringsForPackaging = tasks.register<Copy>("copyStringsForPackaging") {
+    from("src/commonMain/composeResources") {
+        include("values/**/*.xml")
+        include("values-*/**/*.xml")
+    }
+    into("src/commonMain/composeResources/files/strings")
+}
+tasks.matching {
+    (it.name.contains("Resources") || it.name.contains("generateComposeResClass")) &&
+        it.name != "copyStringsForPackaging"
+}.configureEach { dependsOn(copyStringsForPackaging) }

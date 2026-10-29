@@ -6,6 +6,8 @@ class SequencePreviewTest {
     @Test fun finiteInputDoesNotNeedAnIntegerAverage() {
         val p = SiteswapPattern().inspectThrows("345", finite = true)
         assertEquals(3, p.beats)
+        assertTrue(p.beatsPerSecond > 2.0)
+        assertEquals(3.0, SiteswapPattern().inspectThrows("pattern=345;bps=3").beatsPerSecond)
         assertEquals(listOf(3, 5, 7), p.throws.filter { !it.isZero }.map { it.targetIndex })
         assertEquals(3, SiteswapPattern().inspectThrows("531", finite = true).beats)
         assertEquals(6, SiteswapPattern().inspectThrows("531", finite = false).beats)

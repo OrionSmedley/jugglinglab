@@ -109,7 +109,7 @@ class SiteswapPattern : MhnPattern() {
         for (j in 0 until numberOfJugglers) for (h in 0..1) for (i in 0 until period) {
             for (slot in 0 until maxOccupancy) th[j][h][i][slot]?.let { throws.add(it) }
         }
-        return SiteswapThrowInspection(period, numberOfJugglers, throws.sortedWith(compareBy({ it.index }, { it.juggler }, { it.hand }, { it.slot })))
+        return SiteswapThrowInspection(period, numberOfJugglers, throws.sortedWith(compareBy({ it.index }, { it.juggler }, { it.hand }, { it.slot })), if (bpsSet > 0) bpsSet else calcBps(), dwell)
     }
 
     // Only works after parseSiteswapNotation() is called
@@ -685,4 +685,4 @@ class SiteswapPattern : MhnPattern() {
 }
 
 /** Discrete throws before periodic path assignment and loop validation. */
-data class SiteswapThrowInspection(val beats: Int, val jugglers: Int, val throws: List<MhnThrow>)
+data class SiteswapThrowInspection(val beats: Int, val jugglers: Int, val throws: List<MhnThrow>, val beatsPerSecond: Double, val dwellBeats: Double)
