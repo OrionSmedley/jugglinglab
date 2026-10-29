@@ -18,8 +18,19 @@ Animation Preferences still allows a custom slowdown factor.
 
 Props held in the same hand are fanned out in screen space so their inventory
 can be counted. The first prop stays anchored to the physical hand; additional
-props form a small outward stack. Only drawing coordinates change; throw
-scheduling, physical trajectories, hand positions, and exported JML do not.
+props form a small outward stack. Incoming catches smoothly make room by moving
+resident balls aside; the arriving ball reaches the native hand position.
+Departing balls return smoothly to that position before release, and remaining
+inventory settles afterward. Motion is derived from native carry intervals in
+simulation time, so scrubbing works in either direction and playback speed also
+slows the handoff. Only drawing coordinates change; throw scheduling, physical
+trajectories, hand positions, and exported JML do not.
+
+A hand may catch while holding balls reserved for later throws. This is not an
+error. For example, finite `357` and `3555555` can finish, but repeating them
+conflicts at beats 7 and 11 respectively, when two arrivals compete for one
+scheduled slot. Preview initial inventory supplies missing incoming balls; it
+does not excuse a later overbooked landing.
 
 With Play once unchecked, valid patterns animate normally. Enter `32` to
 preview an invalid loop: it stops on beat 4 and reports the affected hand and

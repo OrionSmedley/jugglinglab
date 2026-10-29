@@ -70,6 +70,7 @@ class Renderer {
     private var originX: Int = 0
     private var originZ: Int = 0
 
+    private var heldPropMotion: HeldPropLayout.Motion? = null
     private var objectPool: DrawObjectPool = DrawObjectPool()
     private var sortedObjects: MutableList<DrawObject2D> = mutableListOf()
     private var tempc: Coordinate = Coordinate()
@@ -96,6 +97,7 @@ class Renderer {
 
     fun setPattern(pat: JmlPattern) {
         pattern = pat
+        heldPropMotion = HeldPropLayout.Motion(pat)
         objectPool = DrawObjectPool()
     }
 
@@ -415,8 +417,9 @@ class Renderer {
 
         // Only held props are fanned out; flight coordinates and physics stay native.
         val heldOffsets = mutableMapOf<Int, Offset>()
-        for (hand in HeldPropLayout.hands(pattern, time)) {
-            val diameter = hand.paths.maxOf { path ->
+        for (hand in heldPropMotion?.frame(time).orEmpty()) {
+            if (hand.offsets.isEmpty()) continue
+            val diameter = hand.offsets.keys.maxOf { path ->
                 val size = pattern.getProp(propNumForPath[path - 1]).getProp2DSize(zoom, cameraAngle)
                 max(size.width, size.height).toFloat()
             }
@@ -429,8 +432,8 @@ class Renderer {
             JlVector.fromCoordinate(tempc, tempv1)
             getXYZ(tempv1, tempv2)
             val direction = if (handX < tempv2.x) -1f else 1f
-            hand.paths.forEachIndexed { index, path ->
-                heldOffsets[path] = HeldPropLayout.offset(index, hand.paths.size, diameter, direction)
+            hand.offsets.forEach { (path, offset) ->
+                heldOffsets[path] = Offset(offset.x * diameter * direction, offset.y * diameter)
             }
         }
 
